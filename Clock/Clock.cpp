@@ -104,8 +104,6 @@ void CreateHand(HourHands & hand, RenderWindow & window) {
 void TikTak(SYSTEMTIME & sysTime, HourHands & hand){
 	GetLocalTime(&sysTime);
 	float rotate = (sysTime.wHour % 12) * 30  + sysTime.wMinute * 0.1 + sysTime.wSecond * 0.0017;
-	std::cout << sysTime.wHour % 12 << std::endl;
-	std::cout << rotate << std::endl;
 	hand.hour.setRotation(rotate);
 	rotate = sysTime.wMinute * 6 + sysTime.wSecond * 0.1 ;
 	hand.minute.setRotation(rotate);
