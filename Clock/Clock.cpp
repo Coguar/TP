@@ -11,21 +11,23 @@
 
 using namespace sf;
 
-const float seconds = 43200;
-
 struct HourHands
 {
 	ConvexShape hour = ConvexShape();
-	const float hour_H = 100;
-	const float hour_W = 10;
+	const float hour_height = 100;
+	const float hour_width = 10;
 
 	ConvexShape minute = ConvexShape();
-	const float minute_H = 150;
-	const float minute_W = 5;
+	const float minute_height = 150;
+	const float minute_width = 5;
 
 	ConvexShape second = ConvexShape();
-	const float second_H = 200;
-	const float second_W = 3;
+	const float second_height = 200;
+	const float second_width = 3;
+
+	const int count_hours = 12;
+	const int count_minutes = 60;
+
 };
 
 struct ClockFace
@@ -62,52 +64,52 @@ void CreateFace(ClockFace & face, Window & window) {
 }
 
 void SetFace(ClockFace & face, RenderWindow & window) {
-	int grad = 0;
-	while (grad < 360) {
-		if (grad % 90 == 0) {
-			face.quarter.setPosition(face.dial.getPosition().x + (face.radius * cos(grad * M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(grad * M_PI / 180)));
-			face.quarter.setRotation(grad);
+	int degree = 0;
+	while (degree < 360) {
+		if (degree % 90 == 0) {
+			face.quarter.setPosition(face.dial.getPosition().x + (face.radius * cos(degree* M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(degree * M_PI / 180)));
+			face.quarter.setRotation(degree);
 			window.draw(face.quarter);
-			grad++;
+			degree++;
 		}
-		else if (grad % 30 == 0) {
-			face.regular.setPosition(face.dial.getPosition().x + (face.radius * cos(grad * M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(grad * M_PI / 180)));
-			face.regular.setRotation(grad);
+		else if (degree % 30 == 0) {
+			face.regular.setPosition(face.dial.getPosition().x + (face.radius * cos(degree * M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(degree * M_PI / 180)));
+			face.regular.setRotation(degree);
 			window.draw(face.regular);
-			grad++;
+			degree++;
 		}
-		else if (grad % 6 == 0) {
-			face.common.setPosition(face.dial.getPosition().x + (face.radius * cos(grad * M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(grad * M_PI / 180)));
-			face.common.setRotation(grad);
+		else if (degree % 6 == 0) {
+			face.common.setPosition(face.dial.getPosition().x + (face.radius * cos(degree * M_PI / 180)), face.dial.getPosition().y + (face.radius * sin(degree * M_PI / 180)));
+			face.common.setRotation(degree);
 			window.draw(face.common);
-			grad++;
+			degree++;
 		}
 		else {
-			grad++;
+			degree++;
 		}
 	}
 }
 
 void CreateHand(HourHands & hand, RenderWindow & window) {
 
-	hand.hour = InitHand(hand.hour_H, hand.hour_W);
+	hand.hour = InitHand(hand.hour_height, hand.hour_width);
 	hand.hour.setPosition(window.getSize().x / 2, window.getSize().y / 2);
 	hand.hour.setFillColor(Color::Black);
-	hand.minute = InitHand(hand.minute_H, hand.minute_W);
+	hand.minute = InitHand(hand.minute_height, hand.minute_width);
 	hand.minute.setPosition(window.getSize().x / 2, window.getSize().y / 2);
 	hand.minute.setFillColor(Color::Black);
-	hand.second = InitHand(hand.second_H, hand.second_W);
+	hand.second = InitHand(hand.second_height, hand.second_width);
 	hand.second.setPosition(window.getSize().x / 2, window.getSize().y / 2);
 	hand.second.setFillColor(Color::Red);
 }
 
-void TikTak(SYSTEMTIME & sysTime, HourHands & hand){
+void Process(SYSTEMTIME & sysTime, HourHands & hand){
 	GetLocalTime(&sysTime);
-	float rotate = (sysTime.wHour % 12) * 30  + sysTime.wMinute * 0.1 + sysTime.wSecond * 0.0017;
+	float rotate = (sysTime.wHour % hand.count_hours) * (360 / hand.count_hours)  + sysTime.wMinute * (360 / (hand.count_hours * hand.count_minutes)) + sysTime.wSecond * (360 / (hand.count_hours * pow(hand.count_minutes, 2)));
 	hand.hour.setRotation(rotate);
-	rotate = sysTime.wMinute * 6 + sysTime.wSecond * 0.1 ;
+	rotate = sysTime.wMinute * (360 / hand.count_minutes) + sysTime.wSecond * (360 / pow(hand.count_minutes, 2));
 	hand.minute.setRotation(rotate);
-	rotate = 360 * sysTime.wSecond / 60;
+	rotate = sysTime.wSecond * (360 / hand.count_minutes);
 	hand.second.setRotation(rotate);
 }
 
@@ -130,7 +132,8 @@ int main()
 	ContextSettings settings;
 	settings.antialiasingLevel = 4;
 
-	CircleShape circle(10), circle1(3);
+	CircleShape circle(10);
+	CircleShape circle1(3);
 
 	circle.setPosition(window.getSize().x / 2, window.getSize().y / 2);
 	circle.setFillColor(Color::Black);
@@ -143,11 +146,10 @@ int main()
 	CreateHand(hand, window);
 	CreateFace(face, window);
 	while (window.isOpen()) {
-		TikTak(sysTime, hand);
+		Process(sysTime, hand);
 		SetFace(face, window);
 		DrawClock(hand, window, circle, circle1);
 	}
-	system("pause");
     return 0;
 }
 
