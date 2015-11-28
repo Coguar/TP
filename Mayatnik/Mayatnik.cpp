@@ -2,16 +2,13 @@
 //
 
 #include "stdafx.h"
-#include "math.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <windows.h>
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <math.h>
 
 using namespace sf;
-const double PI = 3.14159265;
-// создаём пустую фигуру
 
 ConvexShape stick(){
 	sf::ConvexShape convex;
@@ -46,7 +43,7 @@ ConvexShape shark(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 	float x1 = 0;
 	float y1 = 0;
 	float x, y;
-	float grad = 360 / (tooth * 3);
+	float grad = float(360 / (tooth * 3));
 	int point_num = tooth * 3;
 	bool big = true;
 	int flag = 0;
@@ -59,8 +56,8 @@ ConvexShape shark(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 	{
 
 		if (big) {
-			x = x1 + (rad_b * cos((grad_pos - grad) * PI / 180));
-			y = y1 + rad_b * sin((grad_pos - grad) * PI / 180);
+			x = x1 + float(rad_b * cos((grad_pos - grad) * M_PI / 180));
+			y = y1 + float(rad_b * sin((grad_pos - grad) * M_PI / 180));
 			flag++;
 			if (flag == 1) {
 				big = false;
@@ -68,8 +65,8 @@ ConvexShape shark(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 			}
 		}
 		else {
-			x = x1 + (rad_s * cos(grad_pos * PI / 180));
-			y = y1 + rad_s * sin(grad_pos * PI / 180);
+			x = x1 + float(rad_s * cos(grad_pos * M_PI / 180));
+			y = y1 + float(rad_s * sin(grad_pos * M_PI / 180));
 			flag++;
 			if (flag == 2) {
 				big = true;
@@ -79,8 +76,6 @@ ConvexShape shark(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 		if (i == 0) {
 
 		}
-		std::cout << x << std::endl;
-		std::cout << y << std::endl;
 		convex.setPoint(i, sf::Vector2f(x, y));
 		grad_pos = grad_pos + grad;
 		i++;
@@ -93,7 +88,7 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 	float x1 = 0;
 	float y1 = 0;
 	float x, y;
-	float grad = 360 / (tooth * 4);
+	float grad = float(360 / (tooth * 4));
 	int point_num = tooth * 4;
 	bool big = true;
 	int flag = 0;
@@ -106,8 +101,8 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 	{
 
 		if (big) {
-			x = x1 + (rad_b * cos(grad_pos * PI / 180));
-			y = y1 + rad_b * sin(grad_pos * PI / 180);
+			x = x1 + float(rad_b * cos(grad_pos * M_PI / 180));
+			y = y1 + float(rad_b * sin(grad_pos * M_PI / 180));
 			flag++;
 			if (flag == 2) {
 				big = false;
@@ -115,8 +110,8 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 			}
 		}
 		else {
-			x = x1 + (rad_s * cos(grad_pos * PI / 180));
-			y = y1 + rad_s * sin(grad_pos * PI / 180);
+			x = x1 + float(rad_s * cos(grad_pos * M_PI / 180));
+			y = y1 + float(rad_s * sin(grad_pos * M_PI / 180));
 			flag++;
 			if (flag == 2) {
 				big = true;
@@ -126,8 +121,6 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 		if (i == 0) {
 
 		}
-		std::cout << x << std::endl;
-		std::cout << y << std::endl;
 		convex.setPoint(i, sf::Vector2f(x, y));
 		grad_pos = grad_pos + grad;
 		i++;
@@ -137,34 +130,98 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, int rad_b, int rad_s) {
 
 struct Pendulum {
 	ConvexShape gear1 = ConvexShape();
+	int gear_tooth1 = 45;
 	ConvexShape gear2 = ConvexShape();
+	int gear_tooth2 = 15;
 	ConvexShape shark1 = ConvexShape();
+	int shark_tooth = 15;
 	ConvexShape bob = ConvexShape();
 	RectangleShape rope = RectangleShape();
 	CircleShape plumb = CircleShape();
 
+	float max_degree = 20;
+	float present_degree = 0;
+	float present_speed = 0;
+
 };
+
+void MechanismStep(Pendulum & pendulum, float & boost, bool & isMove) {
+	if (isMove) {
+		pendulum.gear1.setRotation(float(pendulum.gear1.getRotation() + (360 / pendulum.gear_tooth1) * 0.0001 ));
+		pendulum.gear2.setRotation(float(pendulum.gear2.getRotation() - (360 / pendulum.gear_tooth2) * 0.0001));
+		pendulum.shark1.setRotation(float(pendulum.shark1.getRotation() - (360 / pendulum.shark_tooth) * 0.0001));
+	}
+}
+
+void Speed(Pendulum & pendulum, float & boost, float & time) {
+	pendulum.present_speed = pendulum.present_speed + boost * time;
+}
+
+void BobStep(Pendulum & pendulum, float & boost, bool & isMove, Clock & clock, int & direction) {
+	float time = float(clock.getElapsedTime().asMilliseconds());
+	time = time / 10000;
+	pendulum.present_degree = pendulum.present_degree + abs(time * pendulum.present_speed);
+	if (pendulum.present_degree == pendulum.max_degree / 2) {
+		boost = boost * (-1);
+		clock.restart();
+	}
+	if (pendulum.present_degree >= pendulum.max_degree / 2) {
+		boost = abs(boost) * (-1);
+	}
+	if (pendulum.present_degree >= pendulum.max_degree) {
+		boost = boost * (-1);
+		pendulum.present_degree = 0;
+		clock.restart();
+		direction = direction * (-1);
+		if (direction < 0) {
+			pendulum.bob.setRotation(10);
+			pendulum.rope.setRotation(10);
+			pendulum.plumb.setRotation(10);
+		}
+		else {
+			pendulum.bob.setRotation(-10);
+			pendulum.rope.setRotation(-10);
+			pendulum.plumb.setRotation(-10);
+		}
+	}
+
+	Speed(pendulum, boost, time);
+	pendulum.bob.setRotation(pendulum.bob.getRotation() + direction * (time * pendulum.present_speed));
+	pendulum.rope.setRotation(pendulum.bob.getRotation() + direction * (time * pendulum.present_speed));
+	pendulum.plumb.setRotation(pendulum.bob.getRotation() + direction * (time * pendulum.present_speed));
+
+	if (pendulum.present_speed < 0.1) {
+		isMove = true;
+	}
+	else {
+		isMove = false;
+	}
+}
+
 
 void PendulumInit(Pendulum & pendulum) {
 	pendulum.rope = RectangleShape(sf::Vector2f(10, 300));
 	pendulum.rope.setOrigin(5, 0);
 	pendulum.rope.setPosition(490, 110);
 	pendulum.rope.setFillColor(Color::Yellow);
+	pendulum.rope.setRotation(-10);
 
 	pendulum.plumb = CircleShape(30);
 	pendulum.plumb.setOrigin(30, -300);
 	pendulum.plumb.setPosition(490, 100);
 	pendulum.plumb.setFillColor(Color::Yellow);
+	pendulum.plumb.setRotation(-10);
 
-	pendulum.gear1 = gear(360, 295, 45, 100, 75);
+	pendulum.gear1 = gear(360, 293, pendulum.gear_tooth1, 100, 75);
 
-	pendulum.shark1 = shark(490, 300, 15, 100, 80);
+	pendulum.shark1 = shark(490, 300, pendulum.shark_tooth, 100, 80);
 	pendulum.shark1.setFillColor(Color::Red);
 
-	pendulum.gear2 = gear(490, 300, 15, 40, 20);
+	pendulum.gear2 = gear(490, 300, pendulum.gear_tooth2, 40, 20);
 
 	pendulum.bob = stick();
 	pendulum.bob.setPosition(490, 100);
+	pendulum.bob.setRotation(-10);
 }
 
 void DrawPendulum(Pendulum & pendulum, RenderWindow & window) {
@@ -178,47 +235,15 @@ void DrawPendulum(Pendulum & pendulum, RenderWindow & window) {
 	window.display();
 }
 
-void GoPendulumGo(Pendulum & pendulum, RenderWindow & window) {
+void Process(Pendulum & pendulum, RenderWindow & window) {
+	int direction = 1;
+	float boost = float(0.001);
+	bool isMove = true;
 	Clock clock;
-	Clock clock1;
-	int dir = 1;
-	int pos;
-	float speed_val;
 	while (window.isOpen()) {
-		float time = clock.getElapsedTime().asMilliseconds();
-		float time1 = clock1.getElapsedTime().asMilliseconds();
-		time = time / 100;
-		time1 = time1 / 100;
-		pendulum.gear1.setRotation(-time * 0.338);
-		if (pendulum.gear1.getGlobalBounds().intersects(pendulum.shark1.getGlobalBounds())) {
-			pendulum.shark1.setRotation(time);
-			pendulum.gear2.setRotation(time);
-		}
-		if (time1 >= 18) {
-			dir = dir * (-1);
-			clock1.restart();
-		}
-
-		if (dir < 0) {
-			pos = 10;
-		}
-		else {
-			pos = 350;
-		}
-
-		speed_val = 1 - ((time1 / 10) - 1);
-		if (time >= 9) {
-			speed_val = speed_val + 1.0;
-		}
-
-
-		pendulum.bob.setRotation(pos + time1 * dir * 0.94 * speed_val);
-		pendulum.plumb.setRotation(pos + time1 * dir * 0.94 * speed_val);
-		pendulum.rope.setRotation(pos + time1 * dir * 0.94 * speed_val);
-
-		if (time >= 360) {
-			clock.restart();
-		}
+		//float time = clock.getElapsedTime().asMilliseconds;
+		BobStep(pendulum, boost, isMove, clock, direction);
+		MechanismStep(pendulum, boost, isMove);
 		DrawPendulum(pendulum, window);
 	}
 }
@@ -229,8 +254,7 @@ int main()
 	RenderWindow window(VideoMode(800, 600), "MyPendulum");
 	Pendulum pendulum;
 	PendulumInit(pendulum);
-	
-	GoPendulumGo(pendulum, window);
+	Process(pendulum, window);
 
     return 0;
 }
