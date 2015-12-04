@@ -7,13 +7,13 @@
 #include <iostream>
 #include <sstream>
 #include "main.h"
+
+#include "Struct.h"
+
 #ifdef _DEBUG
 #include <vld.h>
 #endif
-#ifdef _DEBUG
-#include <crtdbg.h>
-#define _CRTDBG_MAP_ALLOC
-#endif
+
 
 
 using namespace sf;
@@ -22,7 +22,6 @@ using namespace std;
 
 
 
-View view;
 
 void TestVld()
 {
@@ -78,7 +77,6 @@ Files get_file_list(string & old_path) {
 	}
 	files.size = i;
 	return files;
-	//delete[] files;
 }
 
 void border_view(View & view, Picture *pic, float scale, float value_zoom) {
@@ -92,7 +90,7 @@ void border_view(View & view, Picture *pic, float scale, float value_zoom) {
 	}
 	if (pic->texture->getSize().y * scale * value_zoom  > view.getSize().y * 0.9) {
 		if (view.getCenter().y + view.getSize().y / 2  > pic->texture->getSize().y / 2 * scale * value_zoom + pic->sprite->getPosition().y + 0.1 * view.getSize().y) {
-			view.setCenter(view.getCenter().x, pic->texture->getSize().y / 2 * scale * value_zoom + pic->sprite->getPosition().y - view.getSize().y / 2 + 0.1 * view.getSize().y);
+			view.setCenter(float(view.getCenter().x), float(pic->texture->getSize().y / 2 * scale * value_zoom + pic->sprite->getPosition().y - view.getSize().y / 2 + 0.1 * view.getSize().y));
 		}
 		else if (view.getCenter().y - view.getSize().y / 2 < pic->sprite->getPosition().y - pic->texture->getSize().y / 2 * scale * value_zoom) {
 			view.setCenter(view.getCenter().x, pic->sprite->getPosition().y - pic->texture->getSize().y / 2 * scale * value_zoom + view.getSize().y / 2);
@@ -110,15 +108,14 @@ void initiation(Vector2u window_size, Files files, Picture *pic) {
 	pic->texture->loadFromImage(*image);
 	delete(image);
 	pic->sprite = new Sprite();
-	pic->sprite->setPosition(float(window_size.x) / 2.0, (float(window_size.y) * 0.75) / 2.0);
-	//cout << float(window_size.x) / 2.0 << endl << (float(window_size.y) * 0.75) / 2.0 << endl;
+	pic->sprite->setPosition(float(window_size.x / 2.0), float((window_size.y * 0.75) / 2.0));
 	pic->sprite->setTexture(*(pic->texture));
-	pic->sprite->setOrigin(pic->texture->getSize().x / 2.0, pic->texture->getSize().y / 2.0);
+	pic->sprite->setOrigin(float(pic->texture->getSize().x / 2.0), float(pic->texture->getSize().y / 2.0));
 	pic->name = string(files.files[pic->number]);
 
 }
 
-void ResizedEvent(Event & event, RenderWindow & window, Vector2u & window_size, Files & files, Picture & picture) {
+void ResizedEvent(Event & event, RenderWindow & window, Vector2u & window_size, Files & files, Picture & picture, View & view) {
 	if (event.size.width < 300) {
 		window_size.x = 300;
 		window.setSize(window_size);
@@ -129,167 +126,160 @@ void ResizedEvent(Event & event, RenderWindow & window, Vector2u & window_size, 
 	}
 	window_size = window.getSize();
 	initiation(window_size, files, &picture);
-	view.setSize(window_size.x, window_size.y);
-	view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
+	view.setSize(float(window_size.x), float(window_size.y));
+	view.setCenter(float(window_size.x / 2.0), float(window_size.y / 2.0));
 }
 
-//Нужны структуры
-/*void MousPressedEvent(Event & event, ) {
-	if (event.key.code == Mouse::Left) {
-		Vector2i localPosition = Mouse::getPosition(window);
-		float x(mousePos.x), y(mousePos.y);
-		if ((FloatRect(window.getSize().x / 2 - text_fon.getSize().x / 2, window.getSize().y - 1.5 * text_fon.getSize().y, text_left.getSize().x, text_left.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-			if (picture.number == 0) {
-				picture.number = files.size;
-			}
-			picture.number--;
-			initiation(window_size, files, &picture);
-			view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-			value_zoom = 1;
-		}
-		else if ((FloatRect(window.getSize().x / 2 + text_fon.getSize().x / 2 - text_right.getSize().x, window.getSize().y - 1.5 * text_fon.getSize().y, text_right.getSize().x, text_right.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-			if (picture.number + 1 == files.size) {
-				picture.number = -1;
-			}
-			picture.number++;
-			initiation(window_size, files, &picture);
-			view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-			value_zoom = 1;
-		}
-		else if ((FloatRect(window.getSize().x / 2 - 5 - text_zoom.getSize().x, window.getSize().y - 1.5 * text_fon.getSize().y, text_zoom.getSize().x, text_zoom.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-			if (value_zoom < 8) {
-				value_zoom++;
-			}
-		}
-		else if ((FloatRect(window.getSize().x / 2 + 5, window.getSize().y - 1.5 * text_fon.getSize().y, text_zoom.getSize().x, text_zoom.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-			if (value_zoom > 1) {
-				value_zoom--;
-			}
+void InitButton(Config & config, Viewer & viewer) {
+	viewer.text_left.loadFromFile(config.left);
+	viewer.text_right.loadFromFile(config.right);
+	viewer.text_zoom.loadFromFile(config.zoom);
+	viewer.text_unzoom.loadFromFile(config.unzoom);
+	viewer.text_fon.loadFromFile(config.fon);
 
-		}
-		else {
-			move = true;
-			center_x = Mouse::getPosition(window).x;
-			center_y = Mouse::getPosition(window).y;
-		}
-	}
-}*/
+	viewer.s_left.setTexture(viewer.text_left);
+	viewer.s_right.setTexture(viewer.text_right);
+	viewer.s_zoom.setTexture(viewer.text_zoom);
+	viewer.s_unzoom.setTexture(viewer.text_unzoom);
+	viewer.s_fon.setTexture(viewer.text_fon);
+}
 
-int main() {
-
-
-	float value_zoom = 1;
-	float scale = 1;
+void InitViewer(Viewer & viewer) {
 	ContextSettings settings;
 	settings.antialiasingLevel = 4;
-	RenderWindow window(VideoMode(800, 600), "Viwer", Style::Default, settings); //, sf::Style::Close
-	window.setVerticalSyncEnabled(true);
-	Vector2u window_size = window.getSize();
-	Clock clock;
+	viewer.window.create(VideoMode(800, 600), "Viwer", Style::Default, settings);
+	viewer.window.setVerticalSyncEnabled(true);
+	viewer.window_size = viewer.window.getSize();
 
-	//view.setViewport(sf::FloatRect(0, 0, 1.0f, 0.75f));
-	view.setSize(window_size.x, window_size.y);
-	view.setCenter(float(window_size.x) / 2.0, float(window_size.y)  / 2.0);
-	//Vector2u view_size = view.getSize();
+	viewer.view.setSize(float(viewer.window_size.x), float(viewer.window_size.y));
+	viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
 	//путь
-	string path = "C:\\lab4\\";
+	viewer.path = "";
 	cout << "Enter Path" << endl;
-	cin >> path;
-
-	//изображение
-	Files files = get_file_list(path);//get_picture_list(get_list_of_files(path));
-	Picture picture;
-	picture.texture->loadFromFile("./files/transparent.png");
-	initiation(window_size, files, &picture);
-
-	//кнопки
-	Texture text_left, text_right, text_zoom, text_unzoom, text_fon;
-	text_left.loadFromFile("./files/left.png");
-	text_right.loadFromFile("./files/right.png");
-	text_zoom.loadFromFile("./files/zoom.png");
-	text_unzoom.loadFromFile("./files/unzoom.png");
-	text_fon.loadFromFile("./files/tool_fon.png");
-
-	Sprite left, right, zoom, unzoom, fon;
-	left.setTexture(text_left);
-	right.setTexture(text_right);
-	zoom.setTexture(text_zoom);
-	unzoom.setTexture(text_unzoom);
-	fon.setTexture(text_fon);
+	cin >> viewer.path;
 
 	Image icon;
 	icon.loadFromFile("./files/ico.png");
-	window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
+	viewer.window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-	bool move = false;
-	Vector2u size;
+	viewer.move = false;
+}
 
-	float center_x ;
-	float center_y ;
+void ScaleSet(Viewer & viewer, Picture * pic) {
+	viewer.scale = 1;
+	if (pic->texture->getSize().x > viewer.window_size.x) {
+		viewer.scale = float(viewer.window_size.x) / pic->texture->getSize().x;
+		pic->sprite->setScale(Vector2f(viewer.scale, viewer.scale));
+	}
+	if (pic->texture->getSize().y * viewer.scale > (0.75 * viewer.window_size.y)) {
+		viewer.scale = float((viewer.window_size.y * 0.75) / pic->texture->getSize().y);
+		pic->sprite->setScale(Vector2f(viewer.scale, viewer.scale));
+	}
+	pic->sprite->setScale(Vector2f(viewer.scale * viewer.value_zoom, viewer.scale * viewer.value_zoom));
+}
 
-	while (window.isOpen())
+void SetCentre(Viewer & viewer, Picture * pic) {
+	if (viewer.move && viewer.value_zoom != 1 && (pic->texture->getSize().x * viewer.scale * viewer.value_zoom > viewer.view.getSize().x || pic->texture->getSize().y * viewer.scale * viewer.value_zoom > viewer.view.getSize().y * 0.9)) {
+		if (pic->texture->getSize().x * viewer.scale * viewer.value_zoom > viewer.view.getSize().x && pic->texture->getSize().y * viewer.scale * viewer.value_zoom <= viewer.view.getSize().y * 0.9) {
+			viewer.view.setCenter(float(viewer.view.getCenter().x - (Mouse::getPosition(viewer.window).x - viewer.center_x)), float(viewer.window_size.y / 2.0));
+		}
+		else if (pic->texture->getSize().x * viewer.scale * viewer.value_zoom <= viewer.view.getSize().x && pic->texture->getSize().y * viewer.scale * viewer.value_zoom > viewer.view.getSize().y * 0.9) {
+			viewer.view.setCenter(float(viewer.window_size.x / 2.0), viewer.view.getCenter().y - (Mouse::getPosition(viewer.window).y - viewer.center_y));
+		}
+		else {
+			viewer.view.setCenter(viewer.view.getCenter().x - (Mouse::getPosition(viewer.window).x - viewer.center_x), viewer.view.getCenter().y - (Mouse::getPosition(viewer.window).y - viewer.center_y));
+		}
+		viewer.center_x = float(Mouse::getPosition(viewer.window).x);
+		viewer.center_y = float(Mouse::getPosition(viewer.window).y);
+	}
+}
+
+void SetButtonPosition(Viewer & viewer) {
+	viewer.s_left.setPosition(float(viewer.view.getCenter().x - viewer.text_fon.getSize().x / 2), float(viewer.view.getCenter().y + (viewer.view.getSize().y / 2) - 1.5 * viewer.text_fon.getSize().y));
+	viewer.s_right.setPosition(float(viewer.view.getCenter().x + viewer.text_fon.getSize().x / 2 - viewer.text_right.getSize().x), float(viewer.view.getCenter().y + (viewer.view.getSize().y / 2) - 1.5 * viewer.text_fon.getSize().y));
+	viewer.s_zoom.setPosition(float(viewer.view.getCenter().x - 5 - viewer.text_zoom.getSize().x), float(viewer.view.getCenter().y + (viewer.view.getSize().y / 2) - 1.5 * viewer.text_fon.getSize().y));
+	viewer.s_unzoom.setPosition(float(viewer.view.getCenter().x + 5), float(viewer.view.getCenter().y + (viewer.view.getSize().y / 2) - 1.5 * viewer.text_fon.getSize().y));
+	viewer.s_fon.setPosition(float(viewer.view.getCenter().x - viewer.text_fon.getSize().x / 2), float(viewer.view.getCenter().y + (viewer.view.getSize().y / 2) - 1.5 * viewer.text_fon.getSize().y));
+
+}
+
+void Draw(Viewer & viewer, Picture & picture) {
+	viewer.window.setView(viewer.view);
+	viewer.window.draw((*picture.sprite));
+	viewer.window.draw(viewer.s_fon);
+	viewer.window.draw(viewer.s_left);
+	viewer.window.draw(viewer.s_right);
+	viewer.window.draw(viewer.s_zoom);
+	viewer.window.draw(viewer.s_unzoom);
+	viewer.window_size = viewer.window.getSize();
+	viewer.window.display();
+	viewer.window.clear(Color(240, 240, 240, 200));
+}
+
+void Start(Viewer & viewer, Files & files, Picture & picture) {
+	while (viewer.window.isOpen())
 	{
 
-		float time = clock.getElapsedTime().asMicroseconds(); //дать прошедшее время в микросекундах
-		clock.restart();
+		float time = float(viewer.clock.getElapsedTime().asMicroseconds()); //дать прошедшее время в микросекундах
+		viewer.clock.restart();
 		time = time / 800;
 		sf::Event event;
-		while (window.pollEvent(event))
+		while (viewer.window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed) {
 				delete[] files.files;
-				window.close();
+				viewer.window.close();
 			}
 
 			if (event.type == sf::Event::Resized) {
-				ResizedEvent(event, window, window_size, files, picture);
+				ResizedEvent(event, viewer.window, viewer.window_size, files, picture, viewer.view);
 			}
-			Vector2i mousePos = Mouse::getPosition(window);
-			Vector2i localPosition = Mouse::getPosition(window);
+			Vector2i mousePos = Mouse::getPosition(viewer.window);
 
-			if (event.type == Event::MouseButtonPressed){//если нажата клавиша мыши
+			if (event.type == Event::MouseButtonPressed) {//если нажата клавиша мыши
 				if (event.key.code == Mouse::Left) {
-					Vector2i localPosition = Mouse::getPosition(window);
-					float x(mousePos.x), y(mousePos.y);
-					if ((FloatRect(window.getSize().x / 2 - text_fon.getSize().x / 2, window.getSize().y - 1.5 * text_fon.getSize().y, text_left.getSize().x, text_left.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
+					Vector2i localPosition = Mouse::getPosition(viewer.window);
+					float x(float(mousePos.x));
+					float y(float(mousePos.y));
+					if ((FloatRect(float(viewer.window.getSize().x / 2 - viewer.text_fon.getSize().x / 2), float(viewer.window.getSize().y - 1.5 * viewer.text_fon.getSize().y), float(viewer.text_left.getSize().x), float(viewer.text_left.getSize().y)).intersects(FloatRect(x, y, 1, 1)))) {
 						if (picture.number == 0) {
 							picture.number = files.size;
 						}
 						picture.number--;
-						initiation(window_size, files, &picture);
-						view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-						value_zoom = 1;
+						initiation(viewer.window_size, files, &picture);
+						viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
+						viewer.value_zoom = 1;
 					}
-					else if ((FloatRect(window.getSize().x / 2 + text_fon.getSize().x / 2 - text_right.getSize().x, window.getSize().y - 1.5 * text_fon.getSize().y, text_right.getSize().x, text_right.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
+					else if ((FloatRect(float(viewer.window.getSize().x / 2 + viewer.text_fon.getSize().x / 2 - viewer.text_right.getSize().x), float(viewer.window.getSize().y - 1.5 * viewer.text_fon.getSize().y), float(viewer.text_right.getSize().x), float(viewer.text_right.getSize().y)).intersects(FloatRect(x, y, 1, 1)))) {
 						if (picture.number + 1 == files.size) {
 							picture.number = -1;
 						}
 						picture.number++;
-						initiation(window_size, files, &picture);
-						view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-						value_zoom = 1;
+						initiation(viewer.window_size, files, &picture);
+						viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
+						viewer.value_zoom = 1;
 					}
-					else if ((FloatRect(window.getSize().x / 2 - 5 - text_zoom.getSize().x, window.getSize().y - 1.5 * text_fon.getSize().y, text_zoom.getSize().x, text_zoom.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-						if (value_zoom < 8) {
-							value_zoom++;
+					else if ((FloatRect(float(viewer.window.getSize().x / 2 - 5 - viewer.text_zoom.getSize().x), float(viewer.window.getSize().y - 1.5 * viewer.text_fon.getSize().y), float(viewer.text_zoom.getSize().x), float(viewer.text_zoom.getSize().y)).intersects(FloatRect(x, y, 1, 1)))) {
+						if (viewer.value_zoom < 8) {
+							viewer.value_zoom++;
 						}
 					}
-					else if ((FloatRect(window.getSize().x / 2 + 5, window.getSize().y - 1.5 * text_fon.getSize().y, text_zoom.getSize().x, text_zoom.getSize().y).intersects(FloatRect(x, y, 1, 1)))) {
-						if (value_zoom > 1) {
-							value_zoom--;
+					else if ((FloatRect(float(viewer.window.getSize().x / 2 + 5), float(viewer.window.getSize().y - 1.5 * viewer.text_fon.getSize().y), float(viewer.text_zoom.getSize().x), float(viewer.text_zoom.getSize().y)).intersects(FloatRect(x, y, 1, 1)))) {
+						if (viewer.value_zoom > 1) {
+							viewer.value_zoom--;
 						}
 
 					}
 					else {
-						move = true;
-						center_x = Mouse::getPosition(window).x;
-						center_y = Mouse::getPosition(window).y;
+						viewer.move = true;
+						viewer.center_x = float(Mouse::getPosition(viewer.window).x);
+						viewer.center_y = float(Mouse::getPosition(viewer.window).y);
 					}
 				}
-		}
-			if (event.type == Event::MouseButtonReleased)//если нажата клавиша мыши
+			}
+			if (event.type == Event::MouseButtonReleased)
 				if (event.key.code == Mouse::Left) {
-					move = false;
+					viewer.move = false;
 				}
 
 			if (Keyboard::isKeyPressed(sf::Keyboard::Left)) {
@@ -297,69 +287,47 @@ int main() {
 					picture.number = files.size;
 				}
 				picture.number--;
-				initiation(window_size, files, &picture);
-				view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-				value_zoom = 1;
+				initiation(viewer.window_size, files, &picture);
+				viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
+				viewer.value_zoom = 1;
 			}
 			if (Keyboard::isKeyPressed(sf::Keyboard::Right)) {
 				if (picture.number + 1 == files.size) {
 					picture.number = -1;
 				}
 				picture.number++;
-				initiation(window_size, files, &picture);
-				view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-				value_zoom = 1;
+				initiation(viewer.window_size, files, &picture);
+				viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
+				viewer.value_zoom = 1;
 			}
 		}
-		if (value_zoom == 1) {
-			view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-		}
-		//view.setSize(window_size.x, window_size.y);
-		//view.setCenter(float(window_size.x) / 2.0, float(window_size.y) / 2.0);
-		window.setTitle(picture.name + " - Viewer1.0");
-		scale = 1;
-		if (picture.texture->getSize().x > window_size.x) {
-			scale = float(window_size.x) / picture.texture->getSize().x;
-			picture.sprite->setScale(Vector2f(scale, scale));
-		}
-		if (picture.texture->getSize().y * scale > (0.75 * window_size.y)) {
-			scale = (float(window_size.y) * 0.75) / picture.texture->getSize().y;
-			picture.sprite->setScale(Vector2f(scale, scale));
-		}
-		picture.sprite->setScale(Vector2f(scale * value_zoom, scale * value_zoom));
-
-		border_view(view, &picture, scale, value_zoom);
-
-		if (move && value_zoom != 1 && (picture.texture->getSize().x * scale * value_zoom > view.getSize().x | picture.texture->getSize().y * scale * value_zoom > view.getSize().y * 0.9)) {
-			if (picture.texture->getSize().x * scale * value_zoom > view.getSize().x && picture.texture->getSize().y * scale * value_zoom <= view.getSize().y * 0.9) {
-				view.setCenter(view.getCenter().x - (Mouse::getPosition(window).x - center_x), float(window_size.y) / 2.0);
-			}
-			else if (picture.texture->getSize().x * scale * value_zoom <= view.getSize().x && picture.texture->getSize().y * scale * value_zoom > view.getSize().y * 0.9) {
-				view.setCenter(float(window_size.x) / 2.0, view.getCenter().y - (Mouse::getPosition(window).y - center_y));
-			}
-			else {
-				view.setCenter(view.getCenter().x - (Mouse::getPosition(window).x - center_x), view.getCenter().y - (Mouse::getPosition(window).y - center_y));
-			}
-			center_x = Mouse::getPosition(window).x;
-			center_y = Mouse::getPosition(window).y;
+		if (viewer.value_zoom == 1) {
+			viewer.view.setCenter(float(viewer.window_size.x / 2.0), float(viewer.window_size.y / 2.0));
 		}
 
+		viewer.window.setTitle(picture.name + " - Viewer1.0");
 
-		left.setPosition(view.getCenter().x - text_fon.getSize().x / 2, view.getCenter().y + (view.getSize().y / 2) - 1.5 * text_fon.getSize().y);
-		right.setPosition(view.getCenter().x + text_fon.getSize().x / 2 - text_right.getSize().x, view.getCenter().y + (view.getSize().y / 2) - 1.5 * text_fon.getSize().y);
-		zoom.setPosition(view.getCenter().x - 5 - text_zoom.getSize().x, view.getCenter().y + (view.getSize().y / 2) - 1.5 * text_fon.getSize().y);
-		unzoom.setPosition(view.getCenter().x + 5, view.getCenter().y + (view.getSize().y / 2) - 1.5 * text_fon.getSize().y);
-		fon.setPosition(view.getCenter().x - text_fon.getSize().x / 2, view.getCenter().y + (view.getSize().y / 2) - 1.5 * text_fon.getSize().y);
-		window.setView(view);
-		window.draw((*picture.sprite));
-		window.draw(fon);
-		window.draw(left);
-		window.draw(right);
-		window.draw(zoom);
-		window.draw(unzoom);
-		window_size = window.getSize();
-		window.display();
-		window.clear(Color(240,240,240,200));
+		ScaleSet(viewer, &picture);
+		border_view(viewer.view, &picture, viewer.scale, viewer.value_zoom);
+		SetCentre(viewer, &picture);
+		SetButtonPosition(viewer);
+		Draw(viewer, picture);
 	}
-
 }
+
+
+int main() {
+	Config config;
+	Viewer viewer;
+
+	InitButton(config, viewer);
+	InitViewer(viewer);
+
+	Files files = get_file_list(viewer.path);
+	cout << files.size;
+	Picture picture;
+	picture.texture->loadFromFile("./files/transparent.png");
+	initiation(viewer.window_size, files, &picture);
+
+	Start(viewer, files, picture);
+	}
