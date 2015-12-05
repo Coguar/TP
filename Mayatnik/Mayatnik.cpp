@@ -60,8 +60,7 @@ ConvexShape shark(float x_pos, float y_pos, int tooth, float rad_b, float rad_s)
 	convex.setPointCount(point_num);
 	convex.setPosition(x_pos, y_pos);
 	convex.setFillColor(Color::Green);
-	int i = 0;
-	for (i; i < point_num; i++)
+	for (int i = 0; i < point_num; i++)
 	{
 
 		if (big) {
@@ -103,8 +102,7 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, float rad_b, float rad_s) 
 	convex.setPointCount(point_num);
 	convex.setPosition(x_pos, y_pos);
 	convex.setFillColor(Color::Blue);
-	int i = 0;
-	for (i; i < point_num; i++)
+	for (int i = 0; i < point_num; i++)
 	{
 
 		if (big) {
@@ -136,13 +134,10 @@ ConvexShape gear(float x_pos, float y_pos, int tooth, float rad_b, float rad_s) 
 
 
 struct Pendulum {
-	Pendulum(int value1, int value2, int value3) {
-		gear_tooth1 = value1;
-		gear_tooth2 = value2;
-		shark_tooth = value3;
-		present_degree = 0;
-		present_speed = 0;
-	}
+	Pendulum(int value1, int value2, int value3):
+	gear_tooth1(value1), gear_tooth2(value2), shark_tooth(value3), present_degree(0), present_speed(0)
+	{}
+	
 	ConvexShape gear1;
 	int gear_tooth1;
 	ConvexShape gear2;
