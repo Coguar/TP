@@ -1,20 +1,20 @@
 #pragma once
 #include "SFML\Graphics.hpp"
 
-const sf::Vector2f max_block_size = { 120, 90 };
+static const sf::Vector2f MAX_SIZE = { 120, 90 };
 
-const sf::Vector2f block_size = { 80, 60 };
+static const sf::Vector2f SIZE = { 80, 60 };
 
-const sf::Vector2f min_block_size = { 40, 30 };
+static const sf::Vector2f MIN_SIZE = { 40, 30 };
 
-const float up_position = 50;
+static const float UP_POS = 50;
 
-const float down_position = 650;
+static const float DOWN_POS = 650;
 
-const float left_position = 50;
+static const float LEFT_POS = 50;
 
-const float right_position = 650;
+static const float RIGHT_POS = 650;
 
-const sf::Vector2f start_position = { 600, 550};
+static const sf::Vector2f START_POS = { 600, 550};
 
-const float block_speed = float(0.05);
+static const float SPEED = float(0.05);

@@ -17,9 +17,9 @@ Block::Block(Vector2f position, Vector2f size, float block_speed) {
 }
 
 void Group::right() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().x < right_position) {
-			blocks[i].block->move(blocks[i].speed, 0);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().x < RIGHT_POS) {
+			thing.block->move(thing.speed, 0);
 		}
 	}
 	if (int(blocks[0].block->getPosition().x) == int(blocks[5].block->getPosition().x)) {
@@ -28,9 +28,9 @@ void Group::right() {
 }
 
 void Group::left() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().x > left_position) {
-			blocks[i].block->move(-blocks[i].speed, 0);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().x > LEFT_POS) {
+			thing.block->move(-thing.speed, 0);
 		}
 	}
 	if (int(blocks[0].block->getPosition().x) == int(blocks[5].block->getPosition().x)) {
@@ -39,9 +39,9 @@ void Group::left() {
 }
 
 void Group::up() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().y > up_position) {
-			blocks[i].block->move(0, -blocks[i].speed);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().y > UP_POS) {
+			thing.block->move(0, -thing.speed);
 		}
 	}
 	if (int(blocks[0].block->getPosition().y) == int(blocks[5].block->getPosition().y)) {
@@ -50,9 +50,9 @@ void Group::up() {
 }
 
 void Group::down() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().y < down_position) {
-			blocks[i].block->move(0, blocks[i].speed);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().y < DOWN_POS) {
+			thing.block->move(0, thing.speed);
 		}
 	}
 	if (int(blocks[0].block->getPosition().y) == int(blocks[5].block->getPosition().y)) {
@@ -61,9 +61,9 @@ void Group::down() {
 }
 //Back
 void Group::back_from_right() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().x > blocks[i].block_position.x) {
-			blocks[i].block->move(-blocks[i].speed, 0);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().x > thing.block_position.x) {
+			thing.block->move(-thing.speed, 0);
 		}
 	}
 	if (int(blocks[0].block->getPosition().x) == int(blocks[0].block_position.x) && int(blocks[5].block->getPosition().x) == int(blocks[5].block_position.x)) {
@@ -72,9 +72,9 @@ void Group::back_from_right() {
 }
 
 void Group::back_from_left() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().x < blocks[i].block_position.x) {
-			blocks[i].block->move(blocks[i].speed, 0);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().x < thing.block_position.x) {
+			thing.block->move(thing.speed, 0);
 		}
 	}
 	if (int(blocks[0].block->getPosition().x) == int(blocks[0].block_position.x) &&  int(blocks[5].block->getPosition().x) == int(blocks[5].block_position.x)) {
@@ -83,9 +83,9 @@ void Group::back_from_left() {
 }
 
 void Group::back_from_up() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().y < blocks[i].block_position.y) {
-			blocks[i].block->move(0, +blocks[i].speed);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().y < thing.block_position.y) {
+			thing.block->move(0, +thing.speed);
 		}
 	}
 	if (int(blocks[0].block->getPosition().y) == int(blocks[0].block_position.y) &&  int(blocks[5].block->getPosition().y) == int(blocks[5].block_position.y)) {
@@ -94,9 +94,9 @@ void Group::back_from_up() {
 }
 
 void Group::back_from_down() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		if (blocks[i].block->getPosition().y > blocks[i].block_position.y) {
-			blocks[i].block->move(0, -blocks[i].speed);
+	for (Block &thing : blocks) {
+		if (thing.block->getPosition().y > thing.block_position.y) {
+			thing.block->move(0, -thing.speed);
 		}
 	}
 	if (int(blocks[0].block->getPosition().y) == int(blocks[0].block_position.y) &&  int(blocks[5].block->getPosition().y) == int(blocks[5].block_position.y)) {
@@ -106,55 +106,55 @@ void Group::back_from_down() {
 //effects
 
 
-void Group::efect_color() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		blocks[i].block->setFillColor(Color(0, int(blocks[i].block_color), 0));
+void Group::effect_color() {
+	for (Block &thing : blocks) {
+		thing.block->setFillColor(Color(0, int(thing.block_color), 0));
 
-		blocks[i].block_color += blocks[i].color_iter;
-		if (blocks[i].block_color <= 150 || blocks[i].block_color >= 250) {
-			blocks[i].color_iter = blocks[i].color_iter * (-1);
+		thing.block_color += thing.color_iter;
+		if (thing.block_color <= 150 || thing.block_color >= 250) {
+			thing.color_iter = thing.color_iter * (-1);
 		}
 	}
 }
 
-void Group::efect_size() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		blocks[i].block->setSize(blocks[i].block_size);
+void Group::effect_size() {
+	for (Block &thing : blocks){
+		thing.block->setSize(thing.block_size);
+	
+		thing.block_size.x += thing.size_iter;
+		thing.block_size.y += thing.size_iter;
 
-		blocks[i].block_size.x += blocks[i].size_iter;
-		blocks[i].block_size.y += blocks[i].size_iter;
-
-		if (blocks[i].block_size.x >= max_block_size.x || blocks[i].block_size.y >= max_block_size.y || blocks[i].block_size.x <= min_block_size.x || blocks[i].block_size.y <= min_block_size.y) {
-			blocks[i].size_iter = blocks[i].size_iter * (-1);
+		if (thing.block_size.x >= MAX_SIZE.x || thing.block_size.y >= MAX_SIZE.y || thing.block_size.x <= MIN_SIZE.x || thing.block_size.y <= MIN_SIZE.y) {
+			thing.size_iter = thing.size_iter * (-1);
 		}
 	}
 
 }
 
-void Group::efect_rotate() {
-	for (int i = 0; i < int(blocks.size()); ++i) {
-		blocks[i].block->setRotation(float(blocks[i].block->getRotation() + 0.01));
-	}
+void Group::effect_rotate() {
+	for (Block &thing : blocks)
+		thing.block->setRotation(float(thing.block->getRotation() + 0.01));
 }
+
 
 void initiation(Group & group) {
 	for (int i = 0; i < 6; ++i) {
-		Block new_block({ start_position.x - i * 80, start_position.y - i * 60 }, block_size, block_speed);
+		Block new_block({ START_POS.x - i * SIZE.x, START_POS.y - i * SIZE.y }, SIZE, SPEED);
 		group.blocks.push_back(new_block);
 	}
 }
 
-void draw(Group & group, RenderWindow & window) //121212
+
+void draw(Group & group, RenderWindow & window) 
 {
-	for (int i = 0; i < int(group.blocks.size()); ++i) {
-		window.draw(*group.blocks[i].block);
-	}
+	for(Block &thing: group.blocks)
+		window.draw(*thing.block);
 	window.display();
 	window.clear(Color::White);
 }
 
+
 void delete_blocks(Group & group) {
-	for (int i = 0; i < int(group.blocks.size()); ++i) {
-		delete group.blocks[i].block;
-	}
+	for (Block &thing : group.blocks)
+		delete &thing;
 }

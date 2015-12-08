@@ -5,11 +5,12 @@
 #include "item.h"
 #include "Config.h"
 #include <random>
+#include <iostream>
 
 int random_number(int number) {
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dist(0, 32700); // 
+	std::uniform_int_distribution<> dist(0, 32700);
 	int random_number = dist(gen) % number;
 	return random_number + 1;
 }
@@ -30,9 +31,9 @@ void update(RenderWindow & window, Group & group) {
 		}
 		switch (group.efect_number)
 		{
-		case 1: group.efect_color(); break;
-		case 2: group.efect_rotate(); break;
-		case 3: group.efect_size(); break;
+		case 1: group.effect_color(); break;
+		case 2: group.effect_rotate(); break;
+		case 3: group.effect_size(); break;
 		}
 
 	}
@@ -40,9 +41,9 @@ void update(RenderWindow & window, Group & group) {
 
 		switch (group.efect_number)
 		{
-		case 1: group.efect_color(); break;
-		case 2: group.efect_rotate(); break;
-		case 3: group.efect_size(); break;
+		case 1: group.effect_color(); break;
+		case 2: group.effect_rotate(); break;
+		case 3: group.effect_size(); break;
 		}
 
 		switch (group.direction)
@@ -73,6 +74,5 @@ void start() {
 
 int main() {
 start();
-
 }
 

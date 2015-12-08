@@ -39,9 +39,9 @@ struct Group {
 	void back_from_up();
 	void back_from_down();
 
-	void efect_color();
-	void efect_size();
-	void efect_rotate();
+	void effect_color();
+	void effect_size();
+	void effect_rotate();
 
 };
 
