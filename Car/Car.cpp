@@ -15,7 +15,13 @@ struct Config
 	std::string CarImage = "./priora.png";
 	std::string WheelImage = "./wheel.png";
 
-	const float WheelRadius = 16;
+	const float WHEEL_RADIUS = 16;
+
+	const Vector2f FRONT_WHEEL_POS = { 162, 62 };
+	const Vector2f BACK_WHEEL_POS = { 43, 62 };
+	const Vector2f ROAD_SIZE = {1600, 100};
+
+	const IntRect WHEEL_RECT = { 0, 0, 32, 32 };
 
 };
 
@@ -36,9 +42,9 @@ struct Car
 	RectangleShape Road;
 };
 
-void SetWheels(Car & car) {
-	car.SpriteFrontWheel.setPosition(car.SpritePriora.getPosition().x + 162, car.SpritePriora.getPosition().y + 66);
-	car.SpriteBackWheel.setPosition(car.SpritePriora.getPosition().x + 43, car.SpritePriora.getPosition().y + 66);
+void SetWheels(Car & car, Config & config) {
+	car.SpriteFrontWheel.setPosition(car.SpritePriora.getPosition().x + config.FRONT_WHEEL_POS.x, car.SpritePriora.getPosition().y + config.FRONT_WHEEL_POS.y);
+	car.SpriteBackWheel.setPosition(car.SpritePriora.getPosition().x + config.BACK_WHEEL_POS.x, car.SpritePriora.getPosition().y + config.BACK_WHEEL_POS.y);
 }
 
 void InitiationCar(RenderWindow & window, Car & car, Config & config) {
@@ -51,20 +57,20 @@ void InitiationCar(RenderWindow & window, Car & car, Config & config) {
 	car.SpriteFrontWheel.setTexture(car.Wheel);
 	car.SpriteBackWheel.setTexture(car.Wheel);
 
-	car.SpriteFrontWheel.setTextureRect(IntRect(0, 0, 32, 32));
-	car.SpriteBackWheel.setTextureRect(IntRect(0, 0, 32, 32));
+	car.SpriteFrontWheel.setTextureRect(config.WHEEL_RECT);
+	car.SpriteBackWheel.setTextureRect(config.WHEEL_RECT);
 
-	car.Radius = config.WheelRadius;
+	car.Radius = config.WHEEL_RADIUS;
 
 	car.SpriteFrontWheel.setOrigin(car.Radius, car.Radius);
 	car.SpriteBackWheel.setOrigin(car.Radius, car.Radius);
 
-	SetWheels(car);
+	SetWheels(car, config);
 
 	car.CarSpeed = 0;
-	car.Boost = float(0.00001);
+	car.Boost = 0.00001f;
 
-	car.Road.setSize(Vector2f(1600, 100));
+	car.Road.setSize(config.ROAD_SIZE);
 	car.Road.setPosition(0, car.SpriteBackWheel.getPosition().y + car.Radius);
 	car.Road.setFillColor(Color::Black);
 }
@@ -83,10 +89,10 @@ void RotateWheels(Car & car, float distantion) {
 	car.SpriteBackWheel.rotate(Rotate(distantion, car.Radius));
 }
 
-void Move(Car & car) {
+void Move(Car & car, Config & config) {
 	Speed(car);
 	car.SpritePriora.move(car.CarSpeed, 0);
-	SetWheels(car);
+	SetWheels(car, config);
 	RotateWheels(car, car.CarSpeed);
 
 }
@@ -120,7 +126,7 @@ void Start() {
 	Clock clock;
 	while (window.isOpen())
 	{
-		Move(car);
+		Move(car, config);
 		Draw(window, car);
 		SetBoost(car, window);
 	}
